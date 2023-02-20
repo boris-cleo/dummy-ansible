@@ -1,4 +1,4 @@
 
 
 
-./ansible-playbooks/.vault-pass
+ansible-playbooks/.vault-pass
