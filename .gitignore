@@ -2,4 +2,4 @@
 
 
 ansible-playbooks/.vault-pass
-ansible-playbooks/.vault-*
+ansible-playbooks/vault_password.txt
