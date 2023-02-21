@@ -1,0 +1,9 @@
+group_env: backup
+docker_compose_user: administrator
+nginx_config_http_template_enable: true
+certname: backup.nu.education-0001 # name of generated letsenctypt cert
+
+nu_docker_compose_items: "{{ backup_customers }}"
+ngxinx_compose_items: "{{ backup_customers }}" # app and int currently share the same server
+
+nu_keycloak_provider_version: 0.6.0

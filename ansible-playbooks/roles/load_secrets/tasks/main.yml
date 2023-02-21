@@ -1,0 +1,4 @@
+- name: load secret vault for database dev
+  include_vars:
+    file: secrets-database-backup.vault.yml
+  when: "'backup' in group_names or 'backup' in group_names"

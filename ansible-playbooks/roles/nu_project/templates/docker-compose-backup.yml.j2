@@ -1,0 +1,300 @@
+version: '3'
+
+services:
+  {{ outer_item.prefix }}middleware-lms:
+    container_name: {{ outer_item.prefix }}middleware-lms
+    image: ghcr.io/nu-lxp/middleware-lms:{{ outer_item.middleware_learnobject_tag }}
+    ports:
+      - "127.0.0.1:{{ outer_item.middleware_learnobject_port }}:8290"
+{% if outer_item.jmx_remote_enable is true %}
+      - "0.0.0.0:{{ outer_item.middleware_learnobject_jmx_remote_port }}:{{ outer_item.middleware_learnobject_jmx_remote_port }}"
+      - "0.0.0.0:{{ outer_item.middleware_learnobject_jmx_rmi_port }}:{{ outer_item.middleware_learnobject_jmx_rmi_port }}"
+{% endif %}
+    networks:
+      {{ outer_item.datasource_network_name }}:
+    restart: unless-stopped
+    environment:
+{% if outer_item.jmx_remote_enable is true %}
+      - "JAVA_OPTIONS=-XX:-OmitStackTraceInFastThrow -Dspring.profiles.active=prod -Dcom.sun.management.jmxremote.port={{ outer_item.middleware_learnobject_jmx_remote_port }} -Dcom.sun.management.jmxremote.rmi.port={{ outer_item.middleware_learnobject_jmx_rmi_port }} -Djava.rmi.server.hostname={{ outer_item.hostname }} -Dcom.sun.management.config.file=/jmx_config/management.properties"
+{% else %}
+      - "JAVA_OPTIONS=-XX:-OmitStackTraceInFastThrow -Dspring.profiles.active=prod"
+{% endif %}
+      - "SPRING_KAFKA_BOOTSTRAPADDRESS={{ outer_item.prefix }}kafka:9093"
+      - "CORS_ALLOWEDORIGINS=https://{{ outer_item.hostname }}:[*], https://*.{{ outer_item.hostname }}:[*]"
+      # deactivate swagger-ui and swagger-ui oauth2
+      - "SPRINGDOC_SWAGGERUI_ENABLED=FALSE"
+      - "SPRINGDOC_SWAGGERUI_OAUTHENABLED=FALSE"
+      - "SERVICE_MIDDLEWARETENANT_URL=http://{{ outer_item.prefix }}middleware-tenant:8385/middleware-tenant"
+      - "SERVICE_MIDDLEWARECLASS_URL=http://{{ outer_item.prefix }}middleware-class:8385/middleware-class"
+      - "SERVICE_MIDDLEWAREIMAGE_URL=http://{{ outer_item.prefix }}middleware-image:8107/middleware-image"
+      - "SERVICE_MIDDLEWAREIMAGE_OAUTH_CLIENTID={{ outer_item.prefix }}tenant-internal"
+      - "SERVICE_MIDDLEWAREIMAGE_OAUTH_CLIENTSECRET={{ outer_item.tenant_internal_secret }}"
+      - "SERVICE_MIDDLEWAREIMAGE_OAUTH_TOKENURI=http://{{ outer_item.keycloak_name }}:8080/realms/internal/protocol/openid-connect/token"
+      - "SPRING_DATASOURCE_URL=jdbc:postgresql://{{ outer_item.prefix }}lmsdb:5432/datasource_lms"
+      - "SPRING_DATASOURCE_USERNAME=${DATASOURCE_DB_USER}"
+      - "SPRING_DATASOURCE_PASSWORD=${DATASOURCE_DB_PASSWORD}"
+      - "SPRING_DATA_MONGODB_URI=mongodb://{{ outer_item.prefix }}widgetdb:27017"
+      - "SPRING_DATA_MONGODB_DATABASE=lms_widgets"
+      - "LOGGING_FILE_PATH=/log"
+      - "MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE=*"
+      - "MANAGEMENT_ENDPOINT_HEALTH_SHOWDETAILS=always"
+      - "SERVER_TOMCAT_MBEANREGISTRY_ENABLED=true"
+      - "AUTOCOMPLETESTUDENTASSESSMENT_ENABLE=false"
+      - "AUTOCOMPLETESTUDENTASSESSMENT_FIXEDDELAY=60000" # In milisecond
+      - "SPRING_TASK_SCHEDULING_POOL_SIZE=1"
+{% if outer_item.lms_data is true %}
+      - "SPRING_FLYWAY_LOCATIONS=classpath:db/migration/schema,classpath:db/migration/data/int"
+{% endif %}
+    depends_on:
+      - {{ outer_item.prefix }}lmsdb
+    volumes:
+      - ./log:/log
+{% if outer_item.jmx_remote_enable is true %}
+      - ./jmx_config:/jmx_config
+{% endif %}
+
+  {{ outer_item.prefix }}lmsdb:
+    image: postgres:14
+    container_name: {{ outer_item.prefix }}lmsdb
+    environment:
+      - "POSTGRES_USER=${DATASOURCE_DB_USER}"
+      - "POSTGRES_PASSWORD=${DATASOURCE_DB_PASSWORD}"
+      - "POSTGRES_DB=datasource_lms"
+    volumes:
+      - "./lms_data:/var/lib/postgresql/data"
+    networks:
+      {{ outer_item.datasource_network_name }}:
+    restart: unless-stopped
+
+  {{ outer_item.prefix }}middleware-class:
+    container_name: {{ outer_item.prefix }}middleware-class
+    image: ghcr.io/nu-lxp/middleware-class:{{ outer_item.middleware_class_tag }}
+    ports:
+      - "127.0.0.1:{{ outer_item.middleware_class_port }}:8385"
+{% if outer_item.jmx_remote_enable is true %}
+      - "0.0.0.0:{{ outer_item.middleware_class_jmx_remote_port }}:{{ outer_item.middleware_class_jmx_remote_port }}"
+      - "0.0.0.0:{{ outer_item.middleware_class_jmx_rmi_port }}:{{ outer_item.middleware_class_jmx_rmi_port }}"
+{% endif %}
+    networks:
+      {{ outer_item.datasource_network_name }}:
+    restart: unless-stopped
+    environment:
+{% if outer_item.jmx_remote_enable is true %}
+      - "JAVA_OPTIONS=-XX:-OmitStackTraceInFastThrow -Dspring.profiles.active=prod -Dcom.sun.management.jmxremote.port={{ outer_item.middleware_class_jmx_remote_port }} -Dcom.sun.management.jmxremote.rmi.port={{ outer_item.middleware_class_jmx_rmi_port }} -Djava.rmi.server.hostname={{ outer_item.hostname }} -Dcom.sun.management.config.file=/jmx_config/management.properties"
+{% else %}
+      - "JAVA_OPTIONS=-XX:-OmitStackTraceInFastThrow -Dspring.profiles.active=prod"
+{% endif %}
+      - "GRAPHQL_ENDPOINT_URL=http://{{ outer_item.prefix }}class-svc:8080/"
+      - "SERVICE_MIDDLEWARELMS_URL=http://{{ outer_item.prefix }}middleware-lms:8290//middleware-learnobject"
+      - "SERVICE_MIDDLEWARELMS_OAUTH_CLIENTID={{ outer_item.prefix }}tenant-internal"
+      - "SERVICE_MIDDLEWARELMS_OAUTH_CLIENTSECRET={{ outer_item.tenant_internal_secret }}"
+      - "SERVICE_MIDDLEWARELMS_OAUTH_TOKENURI=http://{{ outer_item.keycloak_name }}:8080/realms/internal/protocol/openid-connect/token"
+      - "SERVICE_MIDDLEWAREIMAGE_URL=http://{{ outer_item.prefix }}middleware-image:8107/middleware-image"
+      - "SPRING_KAFKA_BOOTSTRAPADDRESS={{ outer_item.prefix }}kafka:9093"
+      - "CORS_ALLOWEDORIGINS=https://{{ outer_item.hostname }}:[*], https://*.{{ outer_item.hostname }}:[*]"
+      # deactivate swagger-ui and swagger-ui oauth2
+      - "SPRINGDOC_SWAGGERUI_ENABLED=FALSE"
+      - "SPRINGDOC_SWAGGERUI_OAUTHENABLED=FALSE"
+      - "MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE=*"
+      - "MANAGEMENT_ENDPOINT_HEALTH_SHOWDETAILS=always"
+      - "SERVER_TOMCAT_MBEANREGISTRY_ENABLED=true"
+      - "LOGGING_FILE_PATH=/log"
+    volumes:
+      - ./log:/log
+{% if outer_item.jmx_remote_enable is true %}
+      - ./jmx_config:/jmx_config
+{% endif %}
+
+  {{ outer_item.prefix }}zookeeper:
+    image: confluentinc/cp-zookeeper:7.1.0-1-ubi8
+    container_name: {{ outer_item.prefix }}zookeeper
+    restart: unless-stopped
+    environment:
+      - "ZOOKEEPER_CLIENT_PORT=2181"
+      - "ZOOKEEPER_TICK_TIME=2000"
+    networks:
+      {{ outer_item.datasource_network_name }}:
+
+  {{ outer_item.prefix }}kafka:
+    image: confluentinc/cp-kafka:7.1.0-1-ubi8
+    container_name: {{ outer_item.prefix }}kafka
+    restart: unless-stopped
+    depends_on:
+      - {{ outer_item.prefix }}zookeeper
+    expose:
+      - "9093"
+    environment:
+      - "KAFKA_BROKER_ID=1"
+      - "KAFKA_ZOOKEEPER_CONNECT={{ outer_item.prefix }}zookeeper:2181"
+      - "KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://{{ outer_item.prefix }}kafka:9093"
+      - "KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=PLAINTEXT:PLAINTEXT"
+      - "KAFKA_INTER_BROKER_LISTENER_NAME=PLAINTEXT"
+      - "KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1"
+    networks:
+      {{ outer_item.datasource_network_name }}:
+
+  {{ outer_item.prefix }}class-svc:
+    container_name: {{ outer_item.prefix }}class-svc
+    image: ghcr.io/nu-lxp/datasource-class:{{ outer_item.datasource_class_tag }}
+    depends_on:
+      - {{ outer_item.prefix }}classdb
+    environment:
+      - "POSTGRES_USER=testuser"
+      # TDODO NULXP-1606: replace with ${DATASOURCE_DB_PASSWORD} 
+      - "POSTGRES_PASSWORD=123456"
+      - "POSTGRES_DB=datasource_class"
+      - "DB_SERVER={{ outer_item.prefix }}classdb"
+      - "DB_PORT=5432"
+      - "PROFILE=int"
+    networks:
+      {{ outer_item.datasource_network_name }}:
+    restart: unless-stopped
+
+  {{ outer_item.prefix }}classdb:
+    image: postgres:14
+    container_name: {{ outer_item.prefix }}classdb
+    hostname: {{ outer_item.prefix }}classdb
+    restart: unless-stopped
+    environment:
+      - "POSTGRES_USER=testuser"
+      # TDODO NULXP-1606: replace with ${DATASOURCE_DB_PASSWORD} 
+      - "POSTGRES_PASSWORD=123456"
+      - "POSTGRES_DB=datasource_class"
+    volumes:
+      - "./classdata:/var/lib/postgresql/data"
+    networks:
+      {{ outer_item.datasource_network_name }}:
+  
+  {{ outer_item.prefix }}middleware-image:
+    image: ghcr.io/nu-lxp/middleware-image:{{ outer_item.middleware_image_tag }}
+    container_name: {{ outer_item.prefix }}middleware-image
+    hostname: {{ outer_item.prefix }}middleware-image
+    ports:
+        - "127.0.0.1:{{ outer_item.middleware_image_port }}:8107"
+{% if outer_item.jmx_remote_enable is true %}
+        - "0.0.0.0:{{ outer_item.middleware_image_jmx_remote_port }}:{{ outer_item.middleware_image_jmx_remote_port }}"
+        - "0.0.0.0:{{ outer_item.middleware_image_jmx_rmi_port }}:{{ outer_item.middleware_image_jmx_rmi_port }}"
+{% endif %}
+    depends_on:
+      - {{ outer_item.prefix }}imagedb        
+    environment:
+{% if outer_item.jmx_remote_enable is true %}
+        - "JAVA_OPTIONS=-XX:-OmitStackTraceInFastThrow -Dspring.profiles.active=prod -Dcom.sun.management.jmxremote.port={{ outer_item.middleware_image_jmx_remote_port }} -Dcom.sun.management.jmxremote.rmi.port={{ outer_item.middleware_image_jmx_rmi_port }} -Djava.rmi.server.hostname={{ outer_item.hostname }} -Dcom.sun.management.config.file=/jmx_config/management.properties"
+{% else %}
+        - "JAVA_OPTIONS=-XX:-OmitStackTraceInFastThrow -Dspring.profiles.active=prod"
+{% endif %}
+        - "SPRING_DATASOURCE_URL=jdbc:postgresql://{{ outer_item.prefix }}imagedb:5432/datasource-image"
+        - "SPRING_DATASOURCE_USERNAME=testuser"
+        - "CORS_ALLOWEDORIGINS=https://{{ outer_item.hostname }}:[*], https://*.{{ outer_item.hostname }}:[*]"
+        # TDODO NULXP-1606: replace with ${DATASOURCE_DB_PASSWORD} 
+        - "SPRING_DATASOURCE_PASSWORD=123456"
+        # deactivate swagger-ui and swagger-ui oauth2
+        - "SPRINGDOC_SWAGGERUI_ENABLED=FALSE"
+        - "SPRINGDOC_SWAGGERUI_OAUTHENABLED=FALSE"
+        - "MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE=*"
+        - "MANAGEMENT_ENDPOINT_HEALTH_SHOWDETAILS=always"
+        - "SERVER_TOMCAT_MBEANREGISTRY_ENABLED=true"
+        - "LOGGING_FILE_PATH=/log"
+    networks:
+      {{ outer_item.datasource_network_name }}:
+    restart: unless-stopped
+    volumes:
+      - ./log:/log
+{% if outer_item.jmx_remote_enable is true %}
+      - ./jmx_config:/jmx_config
+{% endif %}
+
+  {{ outer_item.prefix }}imagedb:
+    image: postgres:14
+    container_name: {{ outer_item.prefix }}imagedb
+    restart: unless-stopped
+    environment:
+        - "POSTGRES_USER=testuser"
+        # TDODO NULXP-1606: replace with ${DATASOURCE_DB_PASSWORD} 
+        - "POSTGRES_PASSWORD=123456"
+        - "POSTGRES_DB=datasource-image"
+    volumes:
+      - "./imagedata:/var/lib/postgresql/data"
+    networks:
+      {{ outer_item.datasource_network_name }}:
+
+  {{ outer_item.prefix }}middleware-tenant:
+    container_name: {{ outer_item.prefix }}middleware-tenant
+    image: ghcr.io/nu-lxp/middleware-tenant:{{ outer_item.middleware_tenant_tag }}
+    ports:
+      - "127.0.0.1:{{ outer_item.middleware_tenant_port }}:8385"
+{% if outer_item.jmx_remote_enable is true %}
+      - "0.0.0.0:{{ outer_item.middleware_tenant_jmx_remote_port }}:{{ outer_item.middleware_tenant_jmx_remote_port }}"
+      - "0.0.0.0:{{ outer_item.middleware_tenant_jmx_rmi_port }}:{{ outer_item.middleware_tenant_jmx_rmi_port }}"
+{% endif %}
+    networks:
+      {{ outer_item.datasource_network_name }}:
+    restart: unless-stopped
+    environment:
+{% if outer_item.jmx_remote_enable is true %}
+      - "JAVA_OPTIONS=-XX:-OmitStackTraceInFastThrow -Dspring.profiles.active=prod -Dcom.sun.management.jmxremote.port={{ outer_item.middleware_tenant_jmx_remote_port }} -Dcom.sun.management.jmxremote.rmi.port={{ outer_item.middleware_tenant_jmx_rmi_port }} -Djava.rmi.server.hostname={{ outer_item.hostname }} -Dcom.sun.management.config.file=/jmx_config/management.properties"
+{% else %}
+      - "JAVA_OPTIONS=-XX:-OmitStackTraceInFastThrow -Dspring.profiles.active=prod"
+{% endif %}
+      - "GRAPHQL_ENDPOINT_URL=http://tenant-svc:8080/"
+      - "CORS_ALLOWEDORIGINS=https://{{ outer_item.hostname }}:[*], https://*.{{ outer_item.hostname }}:[*]"
+      # deactivate swagger-ui and swagger-ui oauth2
+      - "SPRINGDOC_SWAGGERUI_ENABLED=FALSE"
+      - "SPRINGDOC_SWAGGERUI_OAUTHENABLED=FALSE"
+      - "MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE=*"
+      - "MANAGEMENT_ENDPOINT_HEALTH_SHOWDETAILS=always"
+      - "SERVER_TOMCAT_MBEANREGISTRY_ENABLED=true"
+      - "USERSYNC_CRON=0 0 1 * * *" # syncronize users once daily at 1:00 am
+      - "LOGGING_FILE_PATH=/log"
+      - "SPRING_KAFKA_BOOTSTRAPADDRESS={{ outer_item.prefix }}kafka:9093"
+      - "SERVICE_MIDDLEWARECLASS_URL=http://{{ outer_item.prefix }}middleware-class:8385/middleware-class"
+      - "USERRESENDACTIVATION_MAXREMINDERTIMES=3"
+    volumes:
+      - ./log:/log
+{% if outer_item.jmx_remote_enable is true %}
+      - ./jmx_config:/jmx_config
+{% endif %}
+
+  {{ outer_item.prefix }}tenant-svc:
+    container_name: {{ outer_item.prefix }}tenant-svc
+    hostname: tenant-svc
+    image: ghcr.io/nu-lxp/datasource-tenant:{{ outer_item.datasource_tenant_tag }}
+    depends_on:
+      - {{ outer_item.prefix }}tenantdb
+    restart: unless-stopped
+    environment:
+      - "POSTGRES_USER=${DATASOURCE_DB_USER}"
+      - "POSTGRES_PASSWORD=${DATASOURCE_DB_PASSWORD}"
+      - "POSTGRES_DB=datasource_tenant"
+      - "DB_SERVER={{ outer_item.prefix }}tenantdb"
+      - "DB_PORT=5432"
+      - "PROFILE=int"
+    networks:
+      {{ outer_item.datasource_network_name }}:
+
+  {{ outer_item.prefix }}tenantdb:
+    image: postgres:14
+    container_name: {{ outer_item.prefix }}tenantdb
+    restart: unless-stopped
+    environment:
+      - "POSTGRES_USER=${DATASOURCE_DB_USER}"
+      - "POSTGRES_PASSWORD=${DATASOURCE_DB_PASSWORD}"
+      - "POSTGRES_DB=datasource_tenant"
+    volumes:
+      - "./tenant_data:/var/lib/postgresql/data"
+    networks:
+      {{ outer_item.datasource_network_name }}:
+
+  {{ outer_item.prefix }}widgetdb:
+    image: mongo:6
+    container_name: {{ outer_item.prefix }}widgetdb
+    restart: unless-stopped
+    volumes:
+      - "./widget_data:/data/db"
+    networks:
+      {{ outer_item.datasource_network_name }}:
+
+networks:
+  {{ outer_item.datasource_network_name }}:
+    name: {{ outer_item.datasource_network_name }}
+    external: true

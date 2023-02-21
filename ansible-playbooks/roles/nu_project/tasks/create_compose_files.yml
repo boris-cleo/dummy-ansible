@@ -1,0 +1,40 @@
+- name: Create nu project directory
+  file:
+    state: directory
+    path: "{{ outer_item.docker_compose_home }}"
+    owner: "{{ docker_compose_user }}"
+
+- name: Create nu project sub-directories
+  file:
+    state: directory
+    path: "{{ outer_item.docker_compose_home }}/{{ item }}"
+    # TODO NULXP-559: check why os needs volume owner to be systemd-coredump
+    owner: "{{ docker_compose_user }}"
+  with_items:
+    - lms_data
+    - skill_data
+    - keycloak_data
+    - keycloak_theme
+    - keycloak_config
+    - keycloak_providers
+    - tenant_data
+    - log
+    - widget_data
+  ignore_errors: yes # ignore volume creation if directory ownership changed
+
+- name: Copy and fill template nu project docker-compose and environment file
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ outer_item.docker_compose_home }}/{{ item.dest}}"
+    owner: "{{ docker_compose_user }}"
+  with_items:
+    - src: "{{ outer_item.nu_docker_compose_file }}"
+      dest: "docker-compose.yml"
+    - src: ".env.j2"
+      dest: ".env"
+
+- name: Run `docker-compose up` for nu project
+  community.docker.docker_compose:
+    project_src: "{{ outer_item.docker_compose_home }}"
+    build: no
+    pull: yes

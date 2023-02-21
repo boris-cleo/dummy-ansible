@@ -1,0 +1,73 @@
+all_customers: "{{ backup_customers }}"
+
+jmx_server_keystore_truststore_password: "{{ jmx_server_keystore_truststore_password }}"
+jmx_client_keystore_truststore_password: "{{ jmx_client_keystore_truststore_password }}"
+
+
+backup_customers:
+  - hostname: backup.nu.education
+    # allow redirection to uris
+    # keycloak_frontend_redirect_uris:
+    #   - https://backup.nu.education/*
+    # # allow all cors for keycloak on beta
+    # keycloak_frontend_web_origins_uris:
+    #   - https:/backup.nu.education
+    # keycloak_csp_frame_ancestors: https://backup.nu.education
+    docker_compose_home: /home/administrator/docker-compose/nu-backup
+    website_home: /home/administrator/docker-compose/website-nu
+    prefix: "backup-"
+    nu_docker_compose_file: docker-compose-backup.yml.j2
+    # keycloak_credentials_secret: "{{ app.keycloak_credentials_secret }}"
+    keycloak_password: "{{ backup.keycloak_password }}"
+    tenant_internal_secret: "{{ backup.tenant_internal_secret }}"
+    # monitor_internal_secret: "{{ app.monitor_internal_secret }}"
+    # register_captcha_site_key: "{{ GOOGLE_CAPTCHA_SITE_KEY }}"
+    # register_captcha_secret: "{{ GOOGLE_CAPTCHA_SECRET }}"
+    datasource_network_name: backup-datasource-internal
+    # next_tag: v2.14.1-backup # tag for frontend-next docker image
+    # frontend_port: 33032
+    # keycloak_port: 39118
+    middleware_class_port: 22311
+    middleware_class_jmx_remote_port: 30081
+    middleware_class_jmx_rmi_port: 30091
+    middleware_image_port: 22312
+    middleware_image_jmx_remote_port: 30082
+    middleware_image_jmx_rmi_port: 30092
+    middleware_learnobject_port: 22313
+    middleware_learnobject_jmx_remote_port: 30083
+    middleware_learnobject_jmx_rmi_port: 30093
+    middleware_tenant_port: 22314
+    middleware_tenant_jmx_remote_port: 30084
+    middleware_tenant_jmx_rmi_port: 30094
+
+    # Middleware and datasource tags
+    middleware_tenant_tag: 0.18.2
+    middleware_class_tag: 0.34.86
+    middleware_image_tag: 0.2.46
+    middleware_learnobject_tag: 1.32.3
+    datasource_tenant_tag: 0.13.1
+    datasource_class_tag: 0.17.0
+    # landing_page_port: 22315
+    # site_backend_port: 22316
+    # landing_page_tag: 0.5.6-app
+    # site_backend_tag: 0.6.0
+    # site_backend_mail_manager: operation@nu.education
+    # landing_page_docker_compose_home: /home/administrator/docker-compose/landing_page
+    keycloak_name: backup-keycloak
+    organisation_statistic_mail_to: operation@nu.education
+    # SMTP vars
+    smtp_reply_to_display_name: NU Education
+    smtp_host: app.nu.education
+    smtp_port: 588
+    smtp_sstarttls: true
+    smtp_ssl: false
+    smtp_reply_to:
+    smtp_from: noreply@app.nu.education
+    smtp_from_display_name: NU Education
+    smtp_user: noreply@app.nu.education
+    smtp_password: "{{ backup.smtp_secret }}"
+    jmx_remote_username: jmxremote
+    jmx_remote_password: "{{ backup.jmx_remote_password }}"
+    jmx_remote_enable: true
+
+  

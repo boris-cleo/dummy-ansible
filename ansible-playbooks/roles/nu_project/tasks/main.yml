@@ -1,0 +1,13 @@
+---
+# This role contains instruction for the docker-compose directory layout
+- name: Load all secret keys
+  include_role:
+    name: load_secrets
+
+- name: create nu docker compose projects
+  include_tasks: create_compose_files.yml
+  with_items:
+    - "{{ nu_docker_compose_items }}"
+  loop_control:
+    loop_var: outer_item
+  when: ( limit_customer is not defined or limit_customer == outer_item.prefix )

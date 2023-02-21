@@ -1,0 +1,13 @@
+docker_compose_user: administrator
+nginx_config_http_template_enable: true
+# filebeat_docker_compose_home: /home/administrator/docker-compose/filebeat
+# mailserver_docker_compose_home: /home/administrator/docker-compose/app-mailserver
+# keycloak_frontend_client_id: int # for historical reason the client id is int
+# keycloak_backend_client_id: backend-service
+# keycloak_monitoring_client: monitor
+# certname: int.nu.education-0002 # currently int and app share the same server
+
+nu_docker_compose_items: "{{ backup_customers }}"
+# ngxinx_compose_items: "{{ backup_customers }}" # app and int currently share the same server
+
+# nu_keycloak_provider_version: 0.6.0

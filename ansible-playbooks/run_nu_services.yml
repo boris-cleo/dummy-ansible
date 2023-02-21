@@ -1,0 +1,20 @@
+# Just setup the docker_compose files necessary to run nu backend.
+- name: setup docker-compose for nu project
+  gather_facts: true
+  hosts: all
+  vars_files:
+    # var_files only used by a single role should be placed in their "vars" folder
+    # except, if they are vars for galaxy roles or share across roles,
+    # in that case list the var_files here:
+    - ./vars/secrets.vault.yml # encrypted settings run with '--ask-vault-pass'
+  vars:
+    # uncomment to limit for specific customer deployment
+    limit_customer: ""
+
+  roles:
+    # setup the docker_compose for nu project using docker_compose_user
+    - { role: nu_project, tags: backend, become: no }
+    # - { role: website, tags: frontend, become: no }
+    # # the run_start.yml needs also to be executed as docker_compose_user
+    # - { role: landing_page, tags: frontend, become: no }
+
