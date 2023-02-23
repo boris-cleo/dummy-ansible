@@ -7,6 +7,10 @@ jobs:
   run-playbook:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with: 
+          repository: 'boris-cleo/dummy-ansible'
       - name: Run Ansible Playbooks
         uses: dawidd6/action-ansible-playbook@v2
         with:
