@@ -9,6 +9,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+        with:
+          repository: boris-cleo/dummy-ansible
 
       - name: Run Ansible Playbooks
         uses: dawidd6/action-ansible-playbook@v2
@@ -16,7 +18,7 @@ jobs:
           # Required, playbook filepath
           playbook: run_nu_services.yml
           # Optional, directory where playbooks live
-          directory: ${{ github.workspace }}/dummy-ansible/ansible-playbooks
+          directory: ${{ github.workspace }}/ansible-playbooks
           # Optional, SSH private key
           key: ${{secrets.SSH_PRIVATE_KEY}}
           # Optional, literal inventory file contents
