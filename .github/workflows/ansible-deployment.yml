@@ -40,4 +40,4 @@ jobs:
             --limit backup
             --extra-vars "limit_customer=\"backup-\""
             --verbose
-          
+            --ask-vault-pass 
