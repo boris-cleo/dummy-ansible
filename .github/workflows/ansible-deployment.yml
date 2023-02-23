@@ -14,7 +14,7 @@ jobs:
           # Required, playbook filepath
           playbook: run_nu_services.yml
           # Optional, directory where playbooks live
-          directory: ./ansible-playbooks/
+          directory: /home/runner/work/dummy-ansible/ansible-playbooks/
           # Optional, SSH private key
           key: ${{secrets.SSH_PRIVATE_KEY}}
           # Optional, literal inventory file contents
