@@ -12,6 +12,19 @@ jobs:
         with:
           repository: boris-cleo/dummy-ansible
 
+      - name: Create txt file for ansible vault
+        uses: DamianReeves/write-file-action@master
+        with:
+          path: ./vault_password.txt
+          contents: |
+            ${{ secrets.VAULT_PASSSWORD }}
+          write-mode: append
+
+      - name: Create env file
+        uses: ozaytsev86/create-env-file@v1
+        with:
+          ENV_VAULT_PASSWORD: ${{ secrets.VAULT_PASSWORD }}
+
       - name: Run Ansible Playbooks
         uses: dawidd6/action-ansible-playbook@v2
         with:
@@ -40,4 +53,4 @@ jobs:
             --limit backup
             --extra-vars "limit_customer=\"backup-\""
             --verbose
-            --ask-vault-pass 
+            --vault-password-file vault_password.txt 
