@@ -15,7 +15,7 @@ jobs:
       - name: Create txt file for ansible vault
         uses: DamianReeves/write-file-action@master
         with:
-          path: ./vault_password.txt
+          path: ${{ github.workspace }}/ansible/playbooks/vault_password.txt
           contents: |
             ${{ secrets.VAULT_PASSSWORD }}
           write-mode: append
