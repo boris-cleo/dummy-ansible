@@ -17,13 +17,18 @@ jobs:
         with:
           path: ${{ github.workspace }}/ansible/playbooks/vault_password.txt
           contents: |
-            ${{ secrets.VAULT_PASSSWORD }}
+            ${{ secrets.VAULT_PASSWORD }}
           write-mode: append
 
-      - name: Create env file
-        uses: ozaytsev86/create-env-file@v1
-        with:
-          ENV_VAULT_PASSWORD: ${{ secrets.VAULT_PASSWORD }}
+      - name: Write txt file
+        run: |
+          echo ${{ secrets.VAULT_PASSWORD}} > ${{github.workspace}}/vault_password.txt
+
+      - name: Show file content
+        run: |
+          pwd
+          ls -la
+          cat ${{github.workspace}}/vault_password.txt
 
       - name: Run Ansible Playbooks
         uses: dawidd6/action-ansible-playbook@v2
