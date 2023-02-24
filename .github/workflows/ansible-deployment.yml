@@ -21,9 +21,12 @@ jobs:
           write-mode: append
 
       - name: Write txt file
+        uses: actions/checkout@v3
+        with:
+          repository: boris-cleo/dummy-ansible
         run: |
-          echo ${{ secrets.VAULT_PASSWORD}} > ${{github.workspace}}/vault_password.txt
-
+          echo ${{ secrets.VAULT_PASSWORD}} > ${{github.workspace}}/ansible-playbooks/vault_password.txt
+      
       - name: Show file content
         run: |
           pwd
