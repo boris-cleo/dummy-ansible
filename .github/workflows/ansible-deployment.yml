@@ -7,8 +7,12 @@ jobs:
   run-playbook:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - name: Checkout
+      - name: Check current directory
+        run: |
+         echo ${{ github.workspace }}
+         echo $GITHUB_WORKSPACE
+
+      - name: Change directory
         uses: actions/checkout@v3
         with:
           repository: boris-cleo/dummy-ansible
