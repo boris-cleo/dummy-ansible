@@ -9,6 +9,8 @@ jobs:
     steps:
       - name: Change directory
         uses: actions/checkout@v3
+        with:
+          repository: boris-cleo/dummy-ansible
 
       - name: Check current directory
         run: |
