@@ -17,10 +17,11 @@ jobs:
       - name: Write txt file
         run: |
           echo ${{ secrets.VAULT_PASSWORD}} > ${{ github.workspace }}/vault_password.txt
+      
       - name: Show file content
         run: |
           pwd
-          cat ${ {github.workspace }}/vault_password.txt
+          cat ${{ github.workspace }}/vault_password.txt
 
       - name: Run Ansible Playbooks
         uses: dawidd6/action-ansible-playbook@v2
