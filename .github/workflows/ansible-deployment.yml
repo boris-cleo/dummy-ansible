@@ -17,8 +17,6 @@ jobs:
         with:
           repository: boris-cleo/dummy-ansible
           path: './ansible-playbooks/'
-        run: |
-         echo pwd
 
       - name: Write txt file
         run: |
