@@ -14,6 +14,9 @@ jobs:
 
       - name: Change directory
         uses: actions/checkout@v3
+        with:
+          repository: boris-cleo/dummy-ansible
+          path: dummy-ansible
 
       - name: Check
         run: |
@@ -21,12 +24,12 @@ jobs:
           
       - name: Write txt file
         run: |
-          echo "${{ secrets.VAULT_PASSWORD}}" > boris-cleo/dummy-ansible/ansible-playbooks/vault_password.txt
+          echo ${{ secrets.VAULT_PASSWORD}} > ${{ github.workspace }}/vault_password.txt
       - name: Show file content
         run: |
           pwd
           ls -la
-          cat boris-cleo/dummy-ansible/ansible-playbooks/vault_password.txt
+          cat ${{github.workspace}}/vault_password.txt
 
       - name: Run Ansible Playbooks
         uses: dawidd6/action-ansible-playbook@v2
@@ -56,4 +59,4 @@ jobs:
             --limit backup
             --extra-vars "limit_customer=\"backup-\""
             --verbose
-            --vault-password-file vault_password.txt 
+            --vault-password-file ${{ github.workspace}}/vault_password.txt 
