@@ -4,13 +4,11 @@ on:
   workflow_call:
 
 jobs:
-  run-playbook:
+  set-up:
     runs-on: ubuntu-latest
     steps:
       - name: Change directory
         uses: actions/checkout@v3
-        with:
-          repository: boris-cleo/dummy-ansible
 
       - name: Check current directory
         run: |
@@ -24,14 +22,16 @@ jobs:
         run: |
           pwd
           cat ${{ github.workspace }}/vault_password.txt
-
+  
+  deploy:
+    runs-on: ubuntu-latest
+    needs: set-up
+    steps:
       - name: Run Ansible Playbooks
         uses: dawidd6/action-ansible-playbook@v2
         with:
           # Required, playbook filepath
-          playbook: run_nu_services.yml
-          # Optional, directory where playbooks live
-          directory: boris-cleo/dummy-ansible/ansible-playbooks/
+          playbook: boris-cleo/dummy-ansible/ansible-playbooks/run_nu_services.yml
           # Optional, SSH private key
           key: ${{secrets.SSH_PRIVATE_KEY}}
           # Optional, literal inventory file contents
