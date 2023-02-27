@@ -21,7 +21,7 @@ jobs:
           
       - name: Write txt file
         run: |
-          echo ${{ secrets.VAULT_PASSWORD}} > boris-cleo/dummy-ansible/ansible-playbooks/vault_password.txt
+          echo "${{ secrets.VAULT_PASSWORD}}" > boris-cleo/dummy-ansible/ansible-playbooks/vault_password.txt
       - name: Show file content
         run: |
           pwd
