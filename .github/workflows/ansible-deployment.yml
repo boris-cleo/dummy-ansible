@@ -1,4 +1,4 @@
-name: Ansible deployment
+name: Ansible deployment for demo
 
 on:
   workflow_call:
@@ -7,10 +7,12 @@ jobs:
   run-playbook:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v3
       - name: Checkout
         uses: actions/checkout@v3
         with:
           repository: boris-cleo/dummy-ansible
+          path: './ansible-playbooks'
 
       - name: Write txt file
         run: |
