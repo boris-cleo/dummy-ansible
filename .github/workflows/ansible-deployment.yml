@@ -14,6 +14,10 @@ jobs:
           repository: boris-cleo/dummy-ansible
           path: './ansible-playbooks'
 
+      - name: show path
+        run: |
+          pwd
+
       - name: Write txt file
         run: |
           echo ${{ secrets.VAULT_PASSWORD}} > ${{github.workspace}}/ansible-playbooks/vault_password.txt
