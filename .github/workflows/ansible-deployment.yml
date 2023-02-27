@@ -14,17 +14,14 @@ jobs:
 
       - name: Change directory
         uses: actions/checkout@v3
-        with:
-          repository: boris-cleo/dummy-ansible
-          path: dummy-ansible
-          run: |
-            echo pwd
 
+      - name: Check
+        run: |
+          pwd
+          
       - name: Write txt file
         run: |
-          cat boris-cleo/dummy-ansible/ansible-playbooks/vault_password.txt
           echo ${{ secrets.VAULT_PASSWORD}} > boris-cleo/dummy-ansible/ansible-playbooks/vault_password.txt
-      
       - name: Show file content
         run: |
           pwd
