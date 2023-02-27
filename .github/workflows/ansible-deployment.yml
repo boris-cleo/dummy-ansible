@@ -16,21 +16,19 @@ jobs:
         uses: actions/checkout@v3
         with:
           repository: boris-cleo/dummy-ansible
-          path: './ansible-playbooks'
-
-      - name: show path
+          path: './ansible-playbooks/'
         run: |
-          pwd
+         echo pwd
 
       - name: Write txt file
         run: |
-          echo ${{ secrets.VAULT_PASSWORD}} > ${{github.workspace}}/ansible-playbooks/vault_password.txt
+          echo ${{ secrets.VAULT_PASSWORD}} > boris-cleo/dummy-ansible/ansible-playbooks/vault_password.txt
       
       - name: Show file content
         run: |
           pwd
           ls -la
-          cat ${{github.workspace}}/ansible-playbooks/vault_password.txt
+          cat boris-cleo/dummy-ansible/ansible-playbooks/vault_password.txt
 
       - name: Run Ansible Playbooks
         uses: dawidd6/action-ansible-playbook@v2
@@ -38,7 +36,7 @@ jobs:
           # Required, playbook filepath
           playbook: run_nu_services.yml
           # Optional, directory where playbooks live
-          directory: ${{ github.workspace }}/ansible-playbooks
+          directory: boris-cleo/dummy-ansible/ansible-playbooks/
           # Optional, SSH private key
           key: ${{secrets.SSH_PRIVATE_KEY}}
           # Optional, literal inventory file contents
